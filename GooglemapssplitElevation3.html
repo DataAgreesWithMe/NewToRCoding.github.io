@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Street View Side-By-Side</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  
+
+   
+
+  <style id="compiled-css" type="text/css">
+      html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#map,
+#pano {
+  float: left;
+  height: 100%;
+  width: 50%;
+}
+
+  </style>
+
+</head>
+<body>
+    <div id="map"></div>
+<div id="pano"></div>
+
+
+
+  <script type="text/javascript">
+
+function initialize() {
+  var params = getQueryParams();
+  var bryantPark = new google.maps.LatLng(params.lat, params.lon);
+  var map = new google.maps.Map(document.getElementById('map'), {
+    center: bryantPark,
+    zoom: 18,
+    mapTypeId: 'hybrid',
+    zoomControl: true,
+    zoomControlOptions: {
+      style: google.maps.ZoomControlStyle.SMALL
+    },
+    rotateControl: false,
+    mapTypeControl: false
+
+
+  });
+  map.setTilt(45);
+
+  var elevator = new google.maps.ElevationService;
+  var infowindow = new google.maps.InfoWindow({map: map});
+
+  // Add a listener for the click event. Display the elevation for the LatLng of
+  // the click inside the infowindow.
+  map.addListener('click', function(event) {
+    displayLocationElevation(event.latLng, elevator, infowindow);
+  });
+
+
+
+  var panorama = new google.maps.StreetViewPanorama(
+    document.getElementById('pano'), {
+      position: bryantPark,
+      pov: {
+        heading: 45,
+        pitch: 10,
+        zoom: 0
+      }
+    });
+  map.setStreetView(panorama);
+}
+
+function getQueryParams() {
+  var params = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i = 0; i < vars.length; i++) {
+    var pair = vars[i].split("=");
+    if (pair.length == 2) {
+      params[pair[0]] = pair[1];
+    }
+  }
+  return params;
+}
+
+function displayLocationElevation(location, elevator, infowindow) {
+  // Initiate the location request
+  elevator.getElevationForLocations({
+    'locations': [location]
+  }, function(results, status) {
+    infowindow.setPosition(location);
+    if (status === 'OK') {
+      // Retrieve the first result
+      if (results[0]) {
+        // Open the infowindow indicating the elevation at the clicked position.
+        infowindow.setContent('Elevation: <br> ' +
+            Math.round(results[0].elevation*1000)/1000 + ' meters.');
+      } else {
+        infowindow.setContent('No results found');
+      }
+    } else {
+      infowindow.setContent('Elevation service failed due to: ' + status);
+    }
+  });
+}
+
+
+</script>
+
+<!-- Replace the value of the key parameter with your own API key. -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDPt0KaW-UeZIH3p_vofsgxKCEisx_NEa0&callback=initialize">
+
+</script>
+
+</body>
+</html>
